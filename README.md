@@ -1,2 +1,26 @@
-# quote_analyzer_search_engine
-Software que lê arquivos de texto de citações de filmes e organize, em ordem alfabética, as palavras (com mais de 3 caracteres) contidas nas citações e as suas frequências em estruturas de dados.
+# QUOTE ANALIZER AND SEARCH ENGINE
+
+### ESTRUTURA:
+    ├── main.c
+    ├── structures.h
+    ├── file_parser.h
+    ├── file_parser.c
+    ├── word_processing.h
+    ├── word_processing.c
+    ├── array_operations.h
+    ├── array_operations.c
+    ├── bst_operations.h
+    ├── bst_operations.c
+    ├── avl_operations.h
+    ├── avl_operations.c
+    ├── freq_avl_operations.h
+    ├── freq_avl_operations.c
+    ├── utils.h
+    ├── utils.c
+    └── movie_quotes.txt
+
+### INSTRUÇÕES:
+Para compilar o software use o seguinte comando no terminal:
+gcc main.c file_parser.c word_processing.c array_operations.c bst_operations.c avl_operations.c freq_avl_operations.c utils.c -o quote_analyzer -lm
+Para exercutá-lo:
+./quote_analyzer
