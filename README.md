@@ -2,6 +2,14 @@
 
 ## Structure:   
 ---
+The program follows a modular flow:   
+```main.c``` controls the interface and orchestrates the calls;   
+```file_parser.c``` reads and extracts the raw data;   
+```word_processing.c``` prepares the words;   
+```array_operations.c, bst_operations.c, and avl_operations.c``` implement the three main structures for word storage and searching (with the array managing the WordInfo memory);   
+```freq_avl_operations.c``` creates a specialized structure for frequency searching;   
+and ```utils.c``` provides supporting tools such as timing.   
+
     ├── main.c
     ├── structures.h
     ├── file_parser.h
