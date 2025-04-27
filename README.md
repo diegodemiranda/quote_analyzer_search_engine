@@ -46,7 +46,7 @@ Open a terminal or command prompt in the project directory and type:
 
 Interact: Follow the menu options:
 
-Choose 1 and enter movie_quotes.txt to load the data. Observe the loading times.
-Choose 2 and enter a word (e.g., time, love, jedi, kansas) to search. Observe search times and results.
-Choose 3 and enter a frequency range (e.g., min 5, max 10) to find words in that range.
-Choose 0 to exit (memory cleanup should happen automatically).
+Choose 1 and enter movie_quotes.txt to load the data. Observe the loading times.  
+Choose 2 and enter a word (e.g., time, love, jedi, kansas) to search. Observe search times and results.  
+Choose 3 and enter a frequency range (e.g., min 5, max 10) to find words in that range.  
+Choose 0 to exit (memory cleanup should happen automatically).  
