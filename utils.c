@@ -1,5 +1,5 @@
 #include "utils.h"
-#include <stdio.h> // For getchar
+#include <stdio.h> // Para getchar
 
 clock_t timer_start() {
   return clock();
@@ -7,7 +7,7 @@ clock_t timer_start() {
 
 double timer_stop(clock_t start_time) {
   clock_t end_time = clock();
-  return ((double)(end_time - start_time) * 1000.0) / CLOCKS_PER_SEC; // Time in ms
+  return ((double)(end_time - start_time) * 1000.0) / CLOCKS_PER_SEC;
 }
 
 void clear_input_buffer() {

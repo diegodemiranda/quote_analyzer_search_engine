@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <time.h>
 #include "file_parser.h"
 #include "word_processing.h"
 #include "array_operations.h"
@@ -14,86 +13,78 @@
 #define MAX_LINE_LENGTH 2048
 #define INITIAL_VECTOR_CAPACITY 1000
 
-// Helper to trim leading/trailing whitespace and quotes from a string in-place
 static void trim_quotes_whitespace(char *str) {
     if (!str) return;
     char *start = str;
     char *end = str + strlen(str) - 1;
 
-    // Trim leading space/quotes
     while (isspace((unsigned char)*start) || *start == '"') {
         start++;
     }
 
-    // Trim trailing space/quotes
     while (end > start && (isspace((unsigned char)*end) || *end == '"')) {
         end--;
     }
 
-    // Null-terminate the trimmed string
     *(end + 1) = '\0';
 
-    // Shift the string if needed (if leading chars were trimmed)
     if (start != str) {
-        memmove(str, start, (end - start) + 2); // +1 for char, +1 for null terminator
+        //'memmove()' foi usado em vez de 'strcpy()' porque lida corretamente com sobreposição de memória que ocorre
+        //quando deslocamos caracteres dentro da mesma ‘string’.
+        memmove(str, start, (end - start) + 2);
     }
 }
 
-// Parses the movie quotes file
 LoadTimes load_data_from_file(const char *filename, WordVector *vec, BSTNode **bst_root, AVLNode **avl_root) {
     FILE *file = fopen(filename, "r");
     if (!file) {
-        perror("Error opening file");
-        LoadTimes times = { -1.0, -1.0, -1.0 }; // Indicate error
+        perror("Falha ao abrir arquivo.");
+        LoadTimes times = { -1.0, -1.0, -1.0 };
         return times;
     }
 
     char line[MAX_LINE_LENGTH];
     char quote_buffer[MAX_LINE_LENGTH];
     char movie_buffer[MAX_LINE_LENGTH];
-    char year_str[20]; // Ample space for year + quotes + null terminator
+    char year_str[20];
 
-    // Initialize structures
     init_vector(vec, INITIAL_VECTOR_CAPACITY);
     *bst_root = NULL;
     *avl_root = NULL;
 
     LoadTimes times = {0.0, 0.0, 0.0};
-    clock_t start_vec, start_bst, start_avl;
     int line_num = 0;
 
-    printf("Loading data from %s...\n", filename);
+    printf("Carregando os dados do arquivo '%s'...\n", filename);
 
     while (fgets(line, sizeof(line), file)) {
         line_num++;
-        line[strcspn(line, "\r\n")] = 0; // Remove trailing newline/carriage return
+        line[strcspn(line, "\r\n")] = 0;
 
-        // --- Simple CSV Parsing (Assumes format "Quote","Movie","Year") ---
         char *first_quote = strchr(line, '"');
-        if (!first_quote) continue; // Skip lines not starting with quote
+        if (!first_quote) continue;
 
         char *end_first_quote = strchr(first_quote + 1, '"');
-        if (!end_first_quote) continue; // Malformed quote
+        if (!end_first_quote) continue;
 
         char *comma1 = strchr(end_first_quote, ',');
-        if (!comma1) continue; // Missing first comma
+        if (!comma1) continue;
 
         char *second_quote = strchr(comma1, '"');
-        if (!second_quote) continue; // Missing movie quote
+        if (!second_quote) continue;
 
         char *end_second_quote = strchr(second_quote + 1, '"');
-        if (!end_second_quote) continue; // Malformed movie
+        if (!end_second_quote) continue;
 
         char *comma2 = strchr(end_second_quote, ',');
-        if (!comma2) continue; // Missing second comma
+        if (!comma2) continue;
 
         char *third_quote = strchr(comma2, '"');
-        if (!third_quote) continue; // Missing year quote
+        if (!third_quote) continue;
 
         char *end_third_quote = strchr(third_quote + 1, '"');
-        if (!end_third_quote) continue; // Malformed year
+        if (!end_third_quote) continue;
 
-        // Extract parts
         strncpy(quote_buffer, first_quote + 1, end_first_quote - first_quote - 1);
         quote_buffer[end_first_quote - first_quote - 1] = '\0';
 
@@ -103,56 +94,48 @@ LoadTimes load_data_from_file(const char *filename, WordVector *vec, BSTNode **b
         strncpy(year_str, third_quote + 1, end_third_quote - third_quote - 1);
         year_str[end_third_quote - third_quote - 1] = '\0';
 
-        // Trim potential extra spaces (though format seems strict)
-        // trim_quotes_whitespace(quote_buffer); // Usually not needed if format is exact
-        // trim_quotes_whitespace(movie_buffer);
-        // trim_quotes_whitespace(year_str);
-
         int year = atoi(year_str);
-        if (year == 0 && strcmp(year_str, "0") != 0) { // Basic atoi error check
-             fprintf(stderr, "Warning: Invalid year format on line %d: '%s'. Using 0.\n", line_num, year_str);
-             year = 0; // Default or skip? Using 0 for now.
+        if (year == 0 && strcmp(year_str, "0") != 0) {
+            fprintf(stderr, "Aviso: Formato do ano inválido na linha %d: '%s'. Usando 0.\n", line_num, year_str);
+            year = 0;
         }
 
-
-        // --- Process words in the quote ---
-        char *quote_copy = strdup(quote_buffer); // Work on a copy for strtok
+        // --- Processa as palavras da frase ---
+        char *quote_copy = strdup(quote_buffer);
         if (!quote_copy) {
-             perror("Failed to duplicate quote buffer");
-             continue;
+            perror("Falha ao copiar a frase");
+            continue;
         }
-        char *token = strtok(quote_copy, " .,!?;:()[]{}-_\t\n\r"); // Define delimiters
+        char *token = strtok(quote_copy, " .,!?;:()[]{}-_\t\n\r");
 
         while (token != NULL) {
-            char *normalized = normalize_word(token); // Cleans, checks length (>3), allocates memory
+            char *normalized = normalize_word(token);
             if (normalized) {
-                // --- Insert into Vector (and update/create WordInfo) ---
-                start_vec = timer_start();
+                clock_t start_vec = timer_start();
                 WordInfo *word_in_vector = insert_sorted_vector(vec, normalized, quote_buffer, movie_buffer, year);
                 times.vector_time_ms += timer_stop(start_vec);
 
-                // --- Insert pointer into BST ---
-                if (word_in_vector) { // Check if vector insertion was successful
-                    start_bst = timer_start();
+                if (word_in_vector) {
+                    clock_t start_bst = timer_start();
                     *bst_root = insert_bst(*bst_root, word_in_vector, quote_buffer, movie_buffer, year);
                     times.bst_time_ms += timer_stop(start_bst);
 
-                    // --- Insert pointer into AVL ---
-                    start_avl = timer_start();
+                    clock_t start_avl = timer_start();
                     *avl_root = insert_avl(*avl_root, word_in_vector, quote_buffer, movie_buffer, year);
                     times.avl_time_ms += timer_stop(start_avl);
                 } else {
-                    fprintf(stderr, "Warning: Failed to process word '%s' fully, skipping tree insertions.\n", normalized);
+                    fprintf(stderr, "Aviso: falha ao processar a palavra '%s' por completo, pulando inserção na "
+                                    "árvore.\n", normalized);
                 }
 
-                free(normalized); // Free the normalized word string
+                free(normalized);
             }
-            token = strtok(NULL, " .,!?;:()[]{}-_\t\n\r"); // Get next token
+            token = strtok(NULL, " .,!?;:()[]{}-_\t\n\r");
         }
-        free(quote_copy); // Free the duplicated quote string
+        free(quote_copy);
     }
 
     fclose(file);
-    printf("Data loading complete. Processed %d unique words.\n", vec->size);
+    printf("Carregamento dos dados completo. Foram processadas %d palavras únicas.\n", vec->size);
     return times;
 }

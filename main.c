@@ -34,7 +34,7 @@ int main() {
         display_menu();
         printf("Entre com a sua escolha: ");
         if (scanf("%d", &choice) != 1) {
-            printf("Entrada inválida. Por favor, digite um número.\n");
+            printf("Entrada inválida! Por favor, digite um número.\n");
             clear_input_buffer();
             choice = -1;
             continue;
@@ -109,7 +109,7 @@ void handle_load_file() {
     }
     clear_input_buffer();
 
-    LoadTimes times = load_data_from_file(filename, &word_vector, &bst_root, &avl_root);
+    const LoadTimes times = load_data_from_file(filename, &word_vector, &bst_root, &avl_root);
 
     if (times.vector_time_ms >= 0) {
         printf("\n--- Tempo de carregamento dos dados ---\n");
@@ -118,11 +118,10 @@ void handle_load_file() {
         printf("Árvore AVL                   : %.4f ms\n", times.avl_time_ms);
         data_loaded = 1;
 
-        // --- Constrói a Árvore AVL de Frequência ---
         printf("\nConstruindo Árvore AVL de frequência\n");
-        clock_t start_freq = timer_start();
+        const clock_t start_freq = timer_start();
         freq_avl_root = build_freq_avl_from_vector(&word_vector);
-        double freq_build_time = timer_stop(start_freq);
+        const double freq_build_time = timer_stop(start_freq);
         if (freq_avl_root) {
             printf("Árvore construída com sucesso (%.4f ms).\n", freq_build_time);
         } else {
@@ -148,16 +147,15 @@ void handle_search_word() {
     }
     clear_input_buffer();
 
-    normalized_term = normalize_word(search_term); // Normaliza o termo de entrada
+    normalized_term = normalize_word(search_term);
 
     if (!normalized_term) {
-        printf("Palavra inválida (deve possuir mais que 3 caracteres).\n");
+        printf("Palavra inválida (ela deve possuir mais que 3 caracteres).\n");
         return;
     }
     printf("Procurando pela palavra: '%s'\n", normalized_term);
     printf("----------------------------------------\n");
 
-    // --- 1. Busca no Vetor ---
     printf("1. Busca no vetor (busca binária)\n");
     clock_t start_time = timer_start();
     found_info = search_vector(&word_vector, normalized_term);
@@ -166,31 +164,29 @@ void handle_search_word() {
         printf("   Palavra encontrada! Frequência: %d (Tempo de busca: %.6f ms)\n", found_info->frequency, elapsed_time);
         display_citations(found_info->citations);
     } else {
-        printf("   Palavra não encontrada no vetor (Tempo de busca: %.6f ms)\n", elapsed_time);
+        printf("   Palavra não encontrada no vetor (Tempo de busca: %.6f ms).\n", elapsed_time);
     }
     printf("----------------------------------------\n");
 
-    // --- 2. Busca na ABB ---
     printf("2. Busca na Árvore de Busca Binária (ABB)\n");
     start_time = timer_start();
     found_info = search_bst(bst_root, normalized_term);
     elapsed_time = timer_stop(start_time);
     if (found_info) {
         printf("   Palavra encontrada! Frequência: %d (Tempo de busca: %.6f ms)\n", found_info->frequency, elapsed_time);
-        display_citations(found_info->citations); // Já exibido anteriormente
+        display_citations(found_info->citations);
     } else {
         printf("   Palavra não encontrada na ABB (Tempo de busca: %.6f ms)\n", elapsed_time);
     }
     printf("----------------------------------------\n");
 
-    // --- 3. Busca na AVL ---
     printf("3. Busca na Árvore AVL\n");
     start_time = timer_start();
     found_info = search_avl(avl_root, normalized_term);
     elapsed_time = timer_stop(start_time);
     if (found_info) {
         printf("   Palavra encontrada! Frequência: %d (Tempo de busca: %.6f ms)\n", found_info->frequency, elapsed_time);
-        display_citations(found_info->citations); // Já exibido anteriormente
+        display_citations(found_info->citations);
     } else {
         printf("   Palavra não encontrada na AVL (Tempo de busca: %.6f ms)\n", elapsed_time);
     }
@@ -238,14 +234,11 @@ void display_citations(CitationInfo *citations) {
     CitationInfo *current = citations;
     int count = 0;
     printf("   Citações:\n");
-    while (current != NULL) { // Limita a saída para brevidade
-        printf("    - Citação: \"%.50s...\"\n", current->quote); // Mostra parte da citação
+    while (current != NULL) {
+        printf("    - Citação: \"%.50s...\"\n", current->quote);
         printf("      Filme: %s (%d)\n", current->movie, current->year);
         current = current->next;
         count++;
-    }
-    if (current != NULL) {
-        printf("    - ... (entre outras citações)\n");
     }
     if (count == 0) {
         printf("    - (Não foram encontradas citações)\n");
