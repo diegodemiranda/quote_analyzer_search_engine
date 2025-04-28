@@ -44,7 +44,7 @@ Run: Execute the compiled program.
 Open a terminal or command prompt in the project directory and type:   
 ```./quote_analyzer```
 
-Interact: Follow the menu options:
+**To interact follow the menu options**:
 
 **1** to enter a movie quotes file to load the data. Observe the loading times.  
 **2** to search a word (e.g., time, love, jedi, kansas) to search. Observe search times and results.  
